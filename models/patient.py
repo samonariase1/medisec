@@ -1,4 +1,4 @@
-from core.database import db
+from backend.core.database import db
 
 class Patient(db.Model):
     __tablename__ = "patients"

@@ -1,4 +1,4 @@
-from core.database import db
+from backend.core.database import db
 
 class Incident(db.Model):
     """Sentinel: Behavioural threat alerts."""

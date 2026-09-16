@@ -1,4 +1,4 @@
-from core.database import db
+from backend.core.database import db
 
 class Event(db.Model):
     """Seal + Sentinel: Cryptographic log of security-significant events."""

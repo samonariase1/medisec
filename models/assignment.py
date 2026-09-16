@@ -1,4 +1,4 @@
-from core.database import db
+from backend.core.database import db
 
 class Assignment(db.Model):
     """Links a User to a Patient for authorized clinical context."""
