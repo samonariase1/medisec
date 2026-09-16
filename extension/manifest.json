@@ -1,0 +1,27 @@
+{
+  "manifest_version": 3,
+  "name": "MediSec SafeAccess",
+  "version": "1.0.0",
+  "description": "One-click healthcare data security and access monitoring for EMR/EHR systems.",
+  "permissions": [
+    "activeTab",
+    "storage",
+    "scripting"
+  ],
+  "host_permissions": [
+    "http://127.0.0.1:5000/*",
+    "https://*.yourbackenddomain.com/*"
+  ],
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"]
+    }
+  ]
+}

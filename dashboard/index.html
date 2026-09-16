@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MediSec | Security Operations Center (SOC) Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      --bg-deep: #07090e;
+      --bg-surface: #0f1420;
+      --bg-card: #161f33;
+      --primary: #0284c7;
+      --accent-green: #10b981;
+      --accent-red: #ef4444;
+      --accent-amber: #f59e0b;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --border: #1e293b;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg-deep);
+      color: var(--text-main);
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* Sidebar */
+    aside {
+      width: 260px;
+      background: var(--bg-surface);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      padding: 24px;
+    }
+
+    .brand {
+      font-weight: 800;
+      font-size: 20px;
+      color: #ffffff;
+      margin-bottom: 40px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand span {
+      font-size: 11px;
+      background: rgba(2, 132, 199, 0.15);
+      color: #38bdf8;
+      padding: 2px 8px;
+      border-radius: 4px;
+      border: 1px solid rgba(2, 132, 199, 0.3);
+    }
+
+    .nav-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .nav-item button {
+      width: 100%;
+      background: transparent;
+      border: none;
+      text-align: left;
+      color: var(--text-muted);
+      font-size: 14px;
+      font-weight: 500;
+      padding: 10px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .nav-item.active button, .nav-item button:hover {
+      background: rgba(2, 132, 199, 0.1);
+      color: var(--text-main);
+      border-left: 3px solid var(--primary);
+    }
+
+    /* Main Workspace */
+    main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+    }
+
+    header {
+      background: var(--bg-surface);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 36px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .system-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--accent-green);
+      background: rgba(16, 185, 129, 0.08);
+      padding: 6px 14px;
+      border-radius: 20px;
+      border: 1px solid rgba(16, 185, 129, 0.2);
+    }
+
+    .pulse {
+      width: 7px;
+      height: 7px;
+      background: var(--accent-green);
+      border-radius: 50%;
+      box-shadow: 0 0 8px var(--accent-green);
+    }
+
+    .dashboard-content {
+      padding: 36px;
+      max-width: 1400px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .dashboard-header {
+      margin-bottom: 32px;
+    }
+
+    .dashboard-header h1 {
+      font-size: 26px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .dashboard-header p {
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 20px;
+      margin-bottom: 36px;
+    }
+
+    .metric-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+    }
+
+    .metric-card span {
+      font-size: 13px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .metric-card h3 {
+      font-size: 32px;
+      font-weight: 700;
+      color: #ffffff;
+      margin-top: 8px;
+    }
+
+    .metric-card.alert h3 {
+      color: var(--accent-amber);
+    }
+
+    .table-container {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .table-header-bar {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .table-header-bar h3 {
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 14px;
+    }
+
+    th {
+      background: rgba(15, 20, 32, 0.5);
+      color: var(--text-muted);
+      font-weight: 600;
+      padding: 14px 24px;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+
+    td {
+      padding: 16px 24px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text-main);
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .badge.success { background: rgba(16, 185, 129, 0.1); color: var(--accent-green); border: 1px solid rgba(16, 185, 129, 0.2); }
+    .badge.warning { background: rgba(245, 158, 11, 0.1); color: var(--accent-amber); border: 1px solid rgba(245, 158, 11, 0.2); }
+    .badge.danger  { background: rgba(239, 68, 68, 0.1); color: var(--accent-red); border: 1px solid rgba(239, 68, 68, 0.2); }
+
+    .tab-section {
+      display: none;
+    }
+    .tab-section.active {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <aside>
+    <div class="brand">
+      MediSec <span>SOC</span>
+    </div>
+    <ul class="nav-list">
+      <li class="nav-item active" id="nav-telemetry"><button onclick="switchTab('telemetry')">Live Telemetry</button></li>
+      <li class="nav-item" id="nav-audit"><button onclick="switchTab('audit')">Audit Logs</button></li>
+      <li class="nav-item" id="nav-threats"><button onclick="switchTab('threats')">Threats & Diagrams</button></li>
+      <li class="nav-item" id="nav-policies"><button onclick="switchTab('policies')">Security Policies</button></li>
+    </ul>
+  </aside>
+
+  <!-- Main View -->
+  <main>
+    <header>
+      <div style="font-weight: 600; font-size: 15px;" id="header-title">Security Operations Center / Live Monitor</div>
+      <div class="system-status">
+        <span class="pulse"></span>
+        <span id="backend-status-text">Connecting to Backend...</span>
+      </div>
+    </header>
+
+    <div class="dashboard-content">
+      
+      <!-- Telemetry Tab -->
+      <div id="section-telemetry" class="tab-section active">
+        <div class="dashboard-header">
+          <h1>Threat & Access Telemetry</h1>
+          <p>Real-time oversight of browser extension handshakes and cryptographic verification checks.</p>
+        </div>
+        <div class="metrics-grid">
+          <div class="metric-card">
+            <span>Active Sessions</span>
+            <h3 id="m-sessions">--</h3>
+          </div>
+          <div class="metric-card">
+            <span>Verified Handshakes (24h)</span>
+            <h3 id="m-handshakes">--</h3>
+          </div>
+          <div class="metric-card alert">
+            <span>Flagged Anomalies</span>
+            <h3 id="m-anomalies">--</h3>
+          </div>
+        </div>
+      </div>
+
+      <!-- Audit Logs Tab -->
+      <div id="section-audit" class="tab-section">
+        <div class="dashboard-header">
+          <h1>Cryptographic Audit Logs</h1>
+          <p>Immutable ledger of record accesses, authentication events, and protocol overrides.</p>
+        </div>
+        <div class="table-container">
+          <div class="table-header-bar">
+            <h3>Live Audit Event Stream</h3>
+            <!-- Pagination Controls -->
+            <div style="display: flex; gap: 8px; align-items: center;">
+              <button onclick="prevAuditPage()" class="badge warning" style="cursor: pointer; padding: 6px 12px; background: rgba(2, 132, 199, 0.1); color: #38bdf8; border: 1px solid rgba(2, 132, 199, 0.3);">← Prev</button>
+              <span id="page-indicator" style="font-size: 13px; color: var(--text-muted); font-family: monospace;">Page 1 of 1</span>
+              <button onclick="nextAuditPage()" class="badge warning" style="cursor: pointer; padding: 6px 12px; background: rgba(2, 132, 199, 0.1); color: #38bdf8; border: 1px solid rgba(2, 132, 199, 0.3);">Next →</button>
+            </div>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Timestamp</th>
+                <th>Clinician ID / Endpoint</th>
+                <th>Action Type</th>
+                <th>Status</th>
+                <th style="width: 160px;">Hash Verification</th>
+              </tr>
+            </thead>
+            <tbody id="audit-table-body">
+              <tr><td colspan="5" style="text-align: center; color: var(--text-muted);">Awaiting live stream...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Security Policies Tab -->
+      <div id="section-policies" class="tab-section">
+        <div class="dashboard-header">
+          <h1>Active Security Policies</h1>
+          <p>Configured rule sets enforced across the hospital network infrastructure.</p>
+        </div>
+        <div class="table-container">
+          <div class="table-header-bar">
+            <h3>Enforced Policy Registry</h3>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Policy Name</th>
+                <th>Trigger Threshold</th>
+                <th>Enforcement Status</th>
+              </tr>
+            </thead>
+            <tbody id="policy-table-body">
+              <tr><td colspan="3" style="text-align: center; color: var(--text-muted);">Loading active rules...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Threats & Diagrammatic Display Tab -->
+      <div id="section-threats" class="tab-section">
+        <div class="dashboard-header">
+          <h1>Real-Time Threat Intelligence & Duration Analysis</h1>
+          <p>Active anomaly tracking, duration span mapping, and visual risk distribution.</p>
+        </div>
+
+        <!-- Visual Distribution Diagram Card (Dynamic) -->
+        <div class="metric-card" style="margin-bottom: 24px;">
+          <span style="display: block; margin-bottom: 12px; font-weight: 600;">Threat Severity Distribution (Diagrammatic Breakdown)</span>
+          <div style="display: flex; height: 16px; border-radius: 8px; overflow: hidden; background: var(--border); gap: 2px;">
+            <div id="bar-critical" style="width: 0%; background: var(--accent-red); transition: width 0.3s ease;"></div>
+            <div id="bar-warning" style="width: 0%; background: var(--accent-amber); transition: width 0.3s ease;"></div>
+            <div id="bar-secure" style="width: 100%; background: var(--accent-green); transition: width 0.3s ease;"></div>
+          </div>
+          <div style="display: flex; justify-content: space-between; font-size: 12px; color: var(--text-muted); margin-top: 8px;">
+            <span id="label-critical">CRITICAL (0%)</span>
+            <span id="label-warning">WARNING (0%)</span>
+            <span id="label-secure">NOMINAL / SECURE (100%)</span>
+          </div>
+        </div>
+
+        <!-- Live Real-Time Graph Card -->
+        <div class="metric-card" style="margin-bottom: 24px; padding: 24px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <span style="font-weight: 600; font-size: 15px; color: var(--text-main);">Real-Time Threat & Handshake Velocity</span>
+            <button onclick="generateAnomalyReport()" class="badge warning" style="cursor: pointer; border: 1px solid rgba(245, 158, 11, 0.3); padding: 8px 14px; font-weight: 600; border-radius: 6px; background: rgba(245, 158, 11, 0.1); color: var(--accent-amber);">📥 Generate Executive Incident Report</button>
+          </div>
+          <div style="width: 100%; height: 280px; position: relative;">
+            <canvas id="realtimeThreatChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Active Threat Incidents Table -->
+        <div class="table-container">
+          <div class="table-header-bar">
+            <h3>Active Flagged Incidents & Spanned Duration</h3>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Incident ID</th>
+                <th>Source Endpoint</th>
+                <th>Threat Classification</th>
+                <th>Severity</th>
+                <th>Active Span Duration</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="threat-table-body">
+              <tr><td colspan="6" style="text-align: center; color: var(--text-muted);">Scanning telemetry feeds...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const API_BASE = 'http://127.0.0.1:5000/api/v1/soc';
+
+    // Tab Navigation Logic
+    function switchTab(tabName) {
+      document.querySelectorAll('.tab-section').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+
+      document.getElementById(`section-${tabName}`).classList.add('active');
+      document.getElementById(`nav-${tabName}`).classList.add('active');
+
+      const titles = {
+        'telemetry': 'Security Operations Center / Live Monitor',
+        'audit': 'Security Operations Center / Audit Ledger',
+        'threats': 'Security Operations Center / Threat Intelligence',
+        'policies': 'Security Operations Center / Policy Engine'
+      };
+      document.getElementById('header-title').innerText = titles[tabName];
+    }
+    
+    let threatChart;
+    let latestThreatsCache = []; // Cache for dynamic executive reporting
+    let currentOffset = 0;
+    const pageSize = 50;
+
+    // Initialize Chart.js Real-Time Graph
+    function initRealtimeChart() {
+      const ctx = document.getElementById('realtimeThreatChart').getContext('2d');
+      threatChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: [],
+          datasets: [
+            {
+              label: 'Verified Handshakes',
+              data: [],
+              borderColor: '#10b981',
+              backgroundColor: 'rgba(16, 185, 129, 0.1)',
+              fill: true,
+              tension: 0.4
+            },
+            {
+              label: 'Flagged Anomalies',
+              data: [],
+              borderColor: '#ef4444',
+              backgroundColor: 'rgba(239, 68, 68, 0.1)',
+              fill: true,
+              tension: 0.4
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { labels: { color: '#94a3b8', font: { size: 11 } } }
+          },
+          scales: {
+            x: { grid: { color: '#1e293b' }, ticks: { color: '#94a3b8' } },
+            y: { grid: { color: '#1e293b' }, ticks: { color: '#94a3b8' } }
+          }
+        }
+      });
+    }
+
+    // Dynamic Real-Time Chart Updater driven by real telemetry metrics
+    function updateLiveChartWithData(handshakes, anomalies) {
+      if (!threatChart) return;
+      const nowTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      
+      if (threatChart.data.labels.length > 6) {
+        threatChart.data.labels.shift();
+        threatChart.data.datasets[0].data.shift();
+        threatChart.data.datasets[1].data.shift();
+      }
+
+      threatChart.data.labels.push(nowTime);
+      threatChart.data.datasets[0].data.push(handshakes);
+      threatChart.data.datasets[1].data.push(anomalies);
+
+      threatChart.update('none');
+    }
+
+    // Generate Dynamic Executive Anomaly Report based entirely on live cache
+    function generateAnomalyReport() {
+      const reportWindow = window.open('', '_blank');
+      
+      let tableRows = latestThreatsCache.map(t => `
+        <tr>
+          <td>${t.id}</td>
+          <td>${t.source}</td>
+          <td>${t.threat_type}</td>
+          <td>${t.severity}</td>
+          <td>${Math.abs(t.span_minutes)}m active</td>
+        </tr>
+      `).join('');
+
+      if (!tableRows) {
+        tableRows = `<tr><td colspan="5" style="text-align: center;">No active critical anomalies recorded in current stream.</td></tr>`;
+      }
+
+      reportWindow.document.write(`
+        <html>
+        <head>
+          <title>MediSec - Executive Incident Report</title>
+          <style>
+            body { font-family: monospace; padding: 40px; background: #f8fafc; color: #0f172a; }
+            h1 { color: #0284c7; border-bottom: 2px solid #0284c7; padding-bottom: 10px; }
+            .meta { background: #e2e8f0; padding: 15px; border-radius: 6px; margin-bottom: 20px; }
+            table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+            th, td { border: 1px solid #cbd5e1; padding: 10px; text-align: left; font-size: 13px; }
+            th { background: #0f172a; color: #fff; }
+          </style>
+        </head>
+        <body>
+          <h1>MEDISEC SECURITY OPERATIONS CENTER</h1>
+          <div class="meta">
+            <strong>Report Generated:</strong> ${new Date().toUTCString()}<br>
+            <strong>Classification:</strong> RESTRICTED // CLINICAL EMR AUDIT TRAIL<br>
+            <strong>System Status:</strong> OPERATIONAL (Zero-Trust Active)
+          </div>
+          <h3>Active Threat & Anomaly Live Summary</h3>
+          <table>
+            <tr><th>Incident ID</th><th>Source Endpoint</th><th>Classification</th><th>Severity</th><th>Active Span</th></tr>
+            ${tableRows}
+          </table>
+          <br><button onclick="window.print()" style="padding: 10px 20px; background: #0284c7; color: #fff; border: none; cursor: pointer; font-weight: bold;">Print / Export PDF</button>
+        </body>
+        </html>
+      `);
+    }
+
+    // Fetch Live Telemetry Data and Drive Distribution Bar & Chart
+    async function loadTelemetry() {
+      try {
+        const res = await fetch(`${API_BASE}/telemetry`);
+        const data = await res.json();
+        
+        document.getElementById('m-sessions').innerText = data.active_sessions ?? 0;
+        document.getElementById('m-handshakes').innerText = data.verified_handshakes ?? 0;
+        document.getElementById('m-anomalies').innerText = data.flagged_anomalies ?? 0;
+        document.getElementById('backend-status-text').innerText = "Backend Core Operational";
+
+        let crit = data.critical_count || 0;
+        let warn = data.warning_count || 0;
+        let sec = data.secure_count || (data.verified_handshakes || 100);
+        let total = crit + warn + sec;
+
+        if (total > 0) {
+          let pCrit = Math.round((crit / total) * 100);
+          let pWarn = Math.round((warn / total) * 100);
+          let pSec = 100 - (pCrit + pWarn);
+
+          document.getElementById('bar-critical').style.width = pCrit + '%';
+          document.getElementById('bar-warning').style.width = pWarn + '%';
+          document.getElementById('bar-secure').style.width = pSec + '%';
+
+          document.getElementById('label-critical').innerText = `CRITICAL (${pCrit}%)`;
+          document.getElementById('label-warning').innerText = `WARNING (${pWarn}%)`;
+          document.getElementById('label-secure').innerText = `NOMINAL / SECURE (${pSec}%)`;
+        }
+
+        updateLiveChartWithData(data.verified_handshakes || 0, data.flagged_anomalies || 0);
+
+      } catch (err) {
+        document.getElementById('backend-status-text').innerText = "Backend Offline";
+        document.getElementById('backend-status-text').style.color = "var(--accent-red)";
+      }
+    }
+
+    // Fetch Paginated Audit Logs
+    async function loadAuditLogs(offset = 0) {
+      try {
+        const res = await fetch(`${API_BASE}/audit-logs?limit=${pageSize}&offset=${offset}`);
+        const data = await res.json();
+        
+        const tbody = document.getElementById('audit-table-body');
+        const logs = data.logs || [];
+        
+        if (logs.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-muted);">No audit events found.</td></tr>`;
+          document.getElementById('page-indicator').innerText = `Page 1 of 1`;
+          return;
+        }
+
+        let htmlRows = '';
+        logs.forEach(log => {
+          htmlRows += `
+            <tr>
+              <td style="color: var(--text-muted);">${log.timestamp}</td>
+              <td>${log.endpoint}</td>
+              <td>${log.action}</td>
+              <td><span class="badge ${log.badge}">${log.status}</span></td>
+              <td style="font-family: monospace; font-size: 12px; color: var(--text-muted); white-space: nowrap;">${log.hash}</td>
+            </tr>
+          `;
+        });
+        tbody.innerHTML = htmlRows;
+        
+        const currentPageNum = Math.floor(offset / pageSize) + 1;
+        const totalPages = Math.ceil((data.total || 1) / pageSize);
+        document.getElementById('page-indicator').innerText = `Page ${currentPageNum} of ${totalPages || 1}`;
+        
+      } catch (err) {
+        console.error("Failed to load audit logs", err);
+      }
+    }
+
+    // Pagination controls
+    function nextAuditPage() {
+      currentOffset += pageSize;
+      loadAuditLogs(currentOffset);
+    }
+
+    function prevAuditPage() {
+      currentOffset = Math.max(0, currentOffset - pageSize);
+      loadAuditLogs(currentOffset);
+    }
+
+    // Fetch Active Threats dynamically
+    async function loadThreats() {
+      try {
+        const res = await fetch(`${API_BASE}/threats`);
+        const threats = await res.json();
+        latestThreatsCache = threats || []; 
+        const tbody = document.getElementById('threat-table-body');
+        tbody.innerHTML = '';
+
+        if (!threats || threats.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted);">No active threats detected. Network secure.</td></tr>`;
+          return;
+        }
+
+        threats.forEach(t => {
+          let badgeClass = t.severity === 'Critical' ? 'danger' : 'warning';
+          let absSpan = Math.abs(t.span_minutes); 
+          tbody.innerHTML += `
+            <tr>
+              <td style="font-family: monospace; color: #38bdf8;">${t.id}</td>
+              <td>${t.source}</td>
+              <td>${t.threat_type}</td>
+              <td><span class="badge ${badgeClass}">${t.severity}</span></td>
+              <td style="font-weight: 600; color: var(--accent-amber);">${absSpan} minutes active</td>
+              <td><span class="badge success">${t.status}</span></td>
+            </tr>
+          `;
+        });
+      } catch (err) {
+        console.error("Failed to load active threats", err);
+      }
+    }
+
+    // Fetch Security Policies dynamically
+    async function loadPolicies() {
+      try {
+        const res = await fetch(`${API_BASE}/policies`);
+        const policies = await res.json();
+        const tbody = document.getElementById('policy-table-body');
+        tbody.innerHTML = '';
+
+        if (!policies || policies.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: var(--text-muted);">No security policies registered.</td></tr>`;
+          return;
+        }
+
+        policies.forEach(pol => {
+          tbody.innerHTML += `
+            <tr>
+              <td style="font-weight: 600;">${pol.name}</td>
+              <td style="color: var(--text-muted);">${pol.threshold}</td>
+              <td><span class="badge success">${pol.enforcement}</span></td>
+            </tr>
+          `;
+        });
+      } catch (err) {
+        console.error("Failed to load policies", err);
+      }
+    }
+
+    // Unified Window Onload Initializer
+    window.onload = () => {
+      initRealtimeChart();
+      loadTelemetry();
+      loadAuditLogs();
+      loadThreats();
+      loadPolicies();
+      
+      // Continuous real-time polling every 2 seconds
+      setInterval(() => {
+        loadTelemetry();
+        loadAuditLogs(currentOffset);
+        loadThreats();
+      }, 2000);
+    };
+  </script>
+</body>
+</html>

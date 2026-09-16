@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MediSec | Zero-Trust EMR Security & Cryptographic Access Infrastructure</title>
+  <style>
+    :root {
+      --bg-deep: #07090e;
+      --bg-surface: #0f1420;
+      --bg-card: #161f33;
+      --primary: #0284c7;
+      --primary-glow: rgba(2, 132, 199, 0.25);
+      --accent: #10b981;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --border: #1e293b;
+      --border-glow: rgba(56, 189, 248, 0.3);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg-deep);
+      color: var(--text-main);
+      line-height: 1.7;
+      overflow-x: hidden;
+    }
+
+    /* Ambient background lighting */
+    .ambient-glow {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 800px;
+      height: 450px;
+      background: radial-gradient(circle, rgba(2, 132, 199, 0.12) 0%, rgba(7, 9, 14, 0) 70%);
+      z-index: -1;
+      pointer-events: none;
+    }
+
+    /* Header */
+    header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      background: rgba(7, 9, 14, 0.85);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      z-index: 1000;
+      padding: 18px 5%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo-text {
+      font-weight: 800;
+      font-size: 22px;
+      letter-spacing: -0.04em;
+      color: #ffffff;
+    }
+
+    .live-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      background: rgba(16, 185, 129, 0.1);
+      color: var(--accent);
+      padding: 4px 10px;
+      border-radius: 20px;
+      border: 1px solid rgba(16, 185, 129, 0.25);
+    }
+
+    .pulse {
+      width: 6px;
+      height: 6px;
+      background-color: var(--accent);
+      border-radius: 50%;
+      box-shadow: 0 0 8px var(--accent);
+      animation: pulse-anim 2s infinite;
+    }
+
+    @keyframes pulse-anim {
+      0% { transform: scale(0.9); opacity: 0.7; }
+      50% { transform: scale(1.2); opacity: 1; box-shadow: 0 0 12px var(--accent); }
+      100% { transform: scale(0.9); opacity: 0.7; }
+    }
+
+    nav {
+      display: flex;
+      align-items: center;
+      gap: 32px;
+    }
+
+    nav a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 14px;
+      transition: color 0.2s;
+    }
+
+    nav a:hover {
+      color: var(--text-main);
+    }
+
+    .nav-btn {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      color: var(--text-main) !important;
+      padding: 8px 16px;
+      border-radius: 6px;
+      transition: all 0.2s;
+    }
+
+    .nav-btn:hover {
+      border-color: var(--primary);
+      background: rgba(2, 132, 199, 0.1);
+    }
+
+    /* Hero */
+    .hero {
+      position: relative;
+      max-width: 900px;
+      margin: 180px auto 100px auto;
+      text-align: center;
+      padding: 0 24px;
+    }
+
+    .eyebrow {
+      display: inline-block;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: #38bdf8;
+      background: rgba(56, 189, 248, 0.08);
+      padding: 6px 14px;
+      border-radius: 6px;
+      border: 1px solid rgba(56, 189, 248, 0.2);
+      margin-bottom: 24px;
+    }
+
+    h1 {
+      font-size: clamp(38px, 5vw, 60px);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1.12;
+      margin-bottom: 24px;
+    }
+
+    h1 span {
+      background: linear-gradient(135deg, #38bdf8 0%, #818cf8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    p.hero-desc {
+      font-size: 18px;
+      color: var(--text-muted);
+      max-width: 720px;
+      margin: 0 auto 40px auto;
+      line-height: 1.7;
+    }
+
+    .action-group {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .btn-main {
+      background-color: var(--primary);
+      color: white;
+      padding: 14px 28px;
+      font-size: 15px;
+      font-weight: 600;
+      border-radius: 8px;
+      text-decoration: none;
+      box-shadow: 0 4px 20px var(--primary-glow);
+      transition: all 0.2s ease;
+    }
+
+    .btn-main:hover {
+      background-color: #0369a1;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 24px rgba(2, 132, 199, 0.4);
+    }
+
+    .btn-sub {
+      background-color: var(--bg-surface);
+      color: var(--text-main);
+      padding: 14px 28px;
+      font-size: 15px;
+      font-weight: 600;
+      border-radius: 8px;
+      text-decoration: none;
+      border: 1px solid var(--border);
+      transition: all 0.2s ease;
+    }
+
+    .btn-sub:hover {
+      background-color: var(--bg-card);
+      border-color: var(--text-muted);
+    }
+
+    /* Architecture Grid */
+    .section-container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 24px 120px 24px;
+    }
+
+    .section-header {
+      text-align: center;
+      max-width: 650px;
+      margin: 0 auto 70px auto;
+    }
+
+    .section-header h2 {
+      font-size: 32px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 16px;
+    }
+
+    .section-header p {
+      color: var(--text-muted);
+      font-size: 16px;
+    }
+
+    .arch-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 28px;
+    }
+
+    .arch-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 36px;
+      position: relative;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+
+    .arch-card:hover {
+      transform: translateY(-3px);
+      border-color: rgba(56, 189, 248, 0.4);
+    }
+
+    .card-number {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      color: #38bdf8;
+      margin-bottom: 16px;
+      display: block;
+    }
+
+    .arch-card h3 {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+
+    .arch-card p {
+      color: var(--text-muted);
+      font-size: 14px;
+      line-height: 1.7;
+    }
+
+    /* Trust & Security Proof Strip */
+    .proof-strip {
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      background: var(--bg-surface);
+      padding: 48px 24px;
+      margin-bottom: 100px;
+    }
+
+    .proof-grid {
+      max-width: 1000px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 32px;
+      text-align: center;
+    }
+
+    .proof-item h4 {
+      font-size: 26px;
+      font-weight: 700;
+      color: #ffffff;
+      margin-bottom: 6px;
+    }
+
+    .proof-item p {
+      font-size: 13px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    /* Footer */
+    footer {
+      background: var(--bg-deep);
+      border-top: 1px solid var(--border);
+      padding: 60px 24px;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+
+    footer p {
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="ambient-glow"></div>
+
+  <!-- Header -->
+  <header>
+    <div class="brand">
+      <div class="logo-text">MediSec</div>
+      <!-- Clicking this live indicator launches the live SOC Dashboard -->
+      <a href="../dashboard/index.html" target="_blank" style="text-decoration: none;" title="Launch Live SOC Dashboard">
+        <div class="live-indicator" style="cursor: pointer;">
+          <span class="pulse"></span>
+          SOC Active ↗
+        </div>
+      </a>
+    </div>
+    <nav>
+      <a href="#architecture">Architecture</a>
+      <a href="#security">Compliance Core</a>
+      <!-- Dedicated Launch SOC Dashboard Button -->
+      <a href="../dashboard/index.html" target="_blank" class="nav-btn" style="background: rgba(2, 132, 199, 0.15); border-color: rgba(2, 132, 199, 0.4); color: #38bdf8 !important;">Launch SOC Dashboard</a>
+      <!-- Extension Portal Trigger (Opens the 3-step modal guide) -->
+      <a href="#" onclick="openExtensionModal(); return false;" class="nav-btn">Extension Portal</a>
+    </nav>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="eyebrow">Zero-Trust Clinical Infrastructure</div>
+    <h1>Defending Electronic Health Records Against <span>Insider & Endpoint Breaches</span></h1>
+    <p class="hero-desc">MediSec merges lightweight Manifest V3 browser extension telemetry with immutable cryptographic audit logging, giving hospital administrators total real-time visibility over critical patient record interactions.</p>
+    <div class="action-group">
+      <!-- Changed href to an onclick trigger -->
+      <button onclick="openExtensionModal()" class="btn-main" style="cursor: pointer; border: none;">Deploy SafeAccess Extension</button>
+      <a href="#architecture" class="btn-sub">Inspect Architecture Specs</a>
+    </div>
+  </section>
+
+  <!-- Trust Strip -->
+  <div class="proof-strip" id="security">
+    <div class="proof-grid">
+      <div class="proof-item">
+        <h4>Manifest V3</h4>
+        <p>Modern Extension Security</p>
+      </div>
+      <div class="proof-item">
+        <h4>AES-256</h4>
+        <p>Cryptographic Audit Trails</p>
+      </div>
+      <div class="proof-item">
+        <h4>Real-Time</h4>
+        <p>API Session Handshakes</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Architecture Core Section -->
+  <section class="section-container" id="architecture">
+    <div class="section-header">
+      <h2>Engineered for High-Stakes Environments</h2>
+      <p>Designed specifically to protect clinical workflows, prevent unauthorized data harvesting, and guarantee strict access verification without slowing down medical personnel.</p>
+    </div>
+
+    <div class="arch-grid">
+      <div class="arch-card">
+        <span class="card-number">LAYER 01</span>
+        <h3>Client-Side Extension Telemetry</h3>
+        <p>Operating quietly inside the clinician's browser workspace, the extension monitors active session states and interfaces directly with the central hospital infrastructure via secure REST endpoints.</p>
+      </div>
+
+      <div class="arch-card">
+        <span class="card-number">LAYER 02</span>
+        <h3>Cryptographic Core & Logging</h3>
+        <p>Every authentication event, record access, and protocol override is captured, hashed, and committed to an immutable audit backend to ensure end-to-end accountability.</p>
+      </div>
+
+      <div class="arch-card">
+        <span class="card-number">LAYER 03</span>
+        <h3>Admin SOC Dashboard</h3>
+        <p>Security operations teams receive centralized oversight, instantly spotting anomalous behavior patterns, policy violations, or forced break-glass requests across departments.</p>
+      </div>
+    </div>
+  </section>
+  
+  <!-- Extension Deployment Modal -->
+  <div id="extensionModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(7, 9, 14, 0.85); backdrop-filter: blur(8px); z-index: 2000; justify-content: center; align-items: center;">
+    <div style="background: var(--bg-surface); border: 1px solid var(--border); border-radius: 16px; padding: 40px; max-width: 500px; width: 90%; position: relative; box-shadow: 0 20px 40px rgba(0,0,0,0.6);">
+      <h3 style="font-size: 22px; font-weight: 700; margin-bottom: 12px; color: #fff;">Deploying SafeAccess Extension</h3>
+      <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 24px;">Follow these 3 quick steps to load your Manifest V3 extension into Chrome:</p>
+      
+      <div style="display: flex; flex-direction: column; gap: 16px; text-align: left; margin-bottom: 30px;">
+        <div style="display: flex; gap: 14px; align-items: flex-start;">
+          <span style="background: var(--primary); color: #fff; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; flex-shrink: 0;">1</span>
+          <p style="font-size: 14px; color: var(--text-main);">Open a new tab and type <code style="background: var(--bg-deep); padding: 2px 6px; border-radius: 4px; color: #38bdf8;">chrome://extensions/</code> in your address bar.</p>
+        </div>
+        <div style="display: flex; gap: 14px; align-items: flex-start;">
+          <span style="background: var(--primary); color: #fff; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; flex-shrink: 0;">2</span>
+          <p style="font-size: 14px; color: var(--text-main);">Enable Developer Mode using the toggle switch in the top-right corner.</p>
+        </div>
+        <div style="display: flex; gap: 14px; align-items: flex-start;">
+          <span style="background: var(--primary); color: #fff; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; flex-shrink: 0;">3</span>
+          <p style="font-size: 14px; color: var(--text-main);">Click Load unpacked and select your project's <code style="background: var(--bg-deep); padding: 2px 6px; border-radius: 4px; color: #38bdf8;">extension/</code> folder.</p>
+        </div>
+      </div>
+
+      <button onclick="closeExtensionModal()" style="width: 100%; background: var(--primary); color: #fff; border: none; padding: 12px; border-radius: 8px; font-weight: 600; cursor: pointer;">Got it, Close Guide</button>
+    </div>
+  </div>
+
+  <script>
+    function openExtensionModal() {
+      document.getElementById('extensionModal').style.display = 'flex';
+    }
+    function closeExtensionModal() {
+      document.getElementById('extensionModal').style.display = 'none';
+    }
+  </script>
+
+  <!-- Footer -->
+  <footer>
+    <p>&copy; 2026 MediSec Infrastructure. All rights reserved.</p>
+    <p style="font-size: 13px; color: #64748b;">Enterprise Healthcare Data Protection & Identity Access Management Architecture.</p>
+  </footer>
+
+</body>
+</html>
