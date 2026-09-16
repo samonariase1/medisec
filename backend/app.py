@@ -1,14 +1,14 @@
 import sys
 import os
 
-# Add the 'backend' folder to Python's search path so 'core' can be found directly
-sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
+# This safely adds the parent project root folder to Python's path so it finds 'config' and 'models'
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from flask import Flask, jsonify, request
 from flask_cors import CORS
-from config.config import Config                      # Found in root folder
-from backend.core.database import db                  # Found inside backend/core
-from backend.core.errors import register_error_handlers # Found inside backend/core
+from config.config import Config
+from core.database import db
+from core.errors import register_error_handlers
 import models                                         # Found in root folder
 from datetime import time, timedelta
 import time as t_module
