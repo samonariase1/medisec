@@ -8,7 +8,7 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS
 from config.config import Config
 from backend.core.database import db
-from core.errors import register_error_handlers
+from backend.core.errors import register_error_handlers
 import models  # Now Python will successfully find models.py in the root folder!
 from datetime import time, timedelta
 import time as t_module
