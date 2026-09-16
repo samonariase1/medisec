@@ -1,8 +1,8 @@
 import sys
 import os
 
-# Adds the root 'medisec' folder to Python's search path so it can find models.py
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+# Add the 'backend' folder to Python's search path so 'core' can be found directly
+sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
 
 from flask import Flask, jsonify, request
 from flask_cors import CORS
