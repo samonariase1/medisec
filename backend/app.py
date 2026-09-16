@@ -7,7 +7,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from config.config import Config
-from core.database import db
+from backend.core.database import db
 from core.errors import register_error_handlers
 import models  # Now Python will successfully find models.py in the root folder!
 from datetime import time, timedelta
