@@ -7,8 +7,8 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from config.config import Config
-from core.database import db
-from core.errors import register_error_handlers
+from backend.core.database import db
+from backend.core.errors import register_error_handlers
 import models                                         # Found in root folder
 from datetime import time, timedelta
 import time as t_module
