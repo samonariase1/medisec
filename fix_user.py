@@ -1,5 +1,5 @@
 from app import create_app
-from core.database import db
+from backend.core.database import db
 from models.user import User
 from argon2 import PasswordHasher
 import os

@@ -1,5 +1,6 @@
 import sys
 import os
+from pathlib import Path
 
 # This safely adds the parent project root folder to Python's path so it finds 'config' and 'models'
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -17,10 +18,11 @@ def create_app(config_class=Config):
     #Create a /tmp db on vercel. SQLLiteDB schema not yet made. Data Storage is currently non-persistent
     is_vercel = bool(os.environ.get("VERCEL"))
 
+    PROJECT_ROOT = Path(__file__).resolve().parent.parent
     instance_path = (
         "/tmp/medisec-instance"
         if is_vercel
-        else str(PROJECT_ROOT / "instance")  # PROJECT_ROOT is a macro stored on vercel severs representing the root folder.
+        else str(PROJECT_ROOT / "instance")  # PROJECT_ROOT is a macro stored on vercel severs representing the root folder
     )
 
     app = Flask(
