@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify
-from core.auth import login_required
+from backend.core.auth import login_required
 from seal.chain import verify_chain
 
 seal_bp = Blueprint("seal", __name__)

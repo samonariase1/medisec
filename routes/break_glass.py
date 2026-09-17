@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
-from core.auth import login_required
-from core.database import db
+from backend.core.auth import login_required
+from backend.core.database import db
 from models.patient import Patient
 from models.assignment import Assignment
 from models.event import Event

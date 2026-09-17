@@ -1,7 +1,7 @@
 import click
 from flask.cli import with_appcontext
 from datetime import datetime, timezone, date
-from core.database import db
+from backend.core.database import db
 from models.user import User
 from models.patient import Patient
 from models.record import Record

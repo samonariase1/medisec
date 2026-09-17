@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify
-from core.auth import login_required
+from backend.core.auth import login_required
 from models.patient import Patient
 from models.record import Record
 from core.database import db

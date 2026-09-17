@@ -3,7 +3,7 @@ from argon2.exceptions import VerifyMismatchError
 from functools import wraps
 from flask import session, request, jsonify
 from models.user import User
-from core.database import db  # <--- THIS WAS MISSING
+from backend.core.database import db  # <--- THIS WAS MISSING
 import time
 
 ph = PasswordHasher()
