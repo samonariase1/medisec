@@ -1,5 +1,5 @@
-from app import create_app
-from core.database import db
+from backend.app import create_app
+from core.database import db  # Redundant. import exists for future dev
 
 app = create_app()
 
