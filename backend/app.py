@@ -185,10 +185,13 @@ def create_app(config_class=Config):
             })
             
         return {"status": "recorded", "received": data}, 200
-    
+
+    #DB not init yet /tmp currently in use
+    """ 
     # Initialize DB after all routes are registered
     with app.app_context():
         db.create_all()
+    """
         
     return app
 
