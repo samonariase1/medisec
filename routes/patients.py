@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify
 from backend.core.auth import login_required
 from models.patient import Patient
-from core.database import db
+from backend.core.database import db
 from mediguard.policy_engine import evaluate_access
 
 patients_bp = Blueprint("patients", __name__)
