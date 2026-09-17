@@ -14,7 +14,22 @@ from datetime import time, timedelta
 import time as t_module
 
 def create_app(config_class=Config):
-    app = Flask(__name__)
+    #Create a /tmp db on vercel. SQLLiteDB schema not yet made. Data Storage is currently non-persistent
+    is_vercel = bool(os.environ.get("VERCEL"))
+
+    instance_path = (
+        "/tmp/medisec-instance"
+        if is_vercel
+        else str(PROJECT_ROOT / "instance")  # PROJECT_ROOT is a macro stored on vercel severs representing the root folder.
+    )
+
+    app = Flask(
+        __name__,
+        instance_path=instance_path,
+        template_folder=str(PROJECT_ROOT / "templates"),
+    )
+    
+    # app = Flask(__name__)  # Uncomment when SQLDB is setup
     app.config.from_object(config_class)
     
     # Enable CORS so the Chrome extension can talk to your backend API
