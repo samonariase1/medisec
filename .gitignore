@@ -8,3 +8,6 @@ instance/
 .vscode/
 *~
 *.txt
+bin/
+lib/
+*.cfg
