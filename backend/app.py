@@ -7,6 +7,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 
 from flask import Flask, jsonify, request
 from flask_cors import CORS
+from flask_migrate import Migrate
 from config.config import Config
 from backend.core.database import db
 from backend.core.errors import register_error_handlers
@@ -35,12 +36,32 @@ def create_app(config_class=Config):
     app.config.from_object(config_class)
     
     # Enable CORS so the Chrome extension can talk to your backend API
-    CORS(app)
+    # Restrict cross-origin requests to explicitly configured origins.
+    # Restrict cross-origin requests to explicitly configured origins.
+    # Never use unrestricted CORS in production.
+    CORS(
+        app,
+        resources={
+            r"/api/*": {
+                "origins": app.config["CORS_ORIGINS"],
+            },
+            r"/health": {
+                "origins": app.config["CORS_ORIGINS"],
+            },
+        },
+        supports_credentials=True,
+    )
     
     # Strict 30-minute idle timeout for sessions
     app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=30)
     
     db.init_app(app)
+
+    # Flask-Migrate is included for future schema migrations.
+    # The current deployment also calls db.create_all() below so that the
+    # existing prototype can start without a migration history.
+    migrate = Migrate(app, db)
+
     register_error_handlers(app)
     
     # 1. Base Blueprint
@@ -186,16 +207,27 @@ def create_app(config_class=Config):
             
         return {"status": "recorded", "received": data}, 200
 
-    #DB not init yet /tmp currently in use
-    """ 
-    # Initialize DB after all routes are registered
+    # Initialize existing database tables for the current prototype.
+    #
+    # This is acceptable for the initial deployment. Once the production
+    # schema stabilizes, replace this with:
+    #
+    # flask db init
+    # flask db migrate -m "Initial schema"
+    # flask db upgrade
+    #
+    # and run migrations during deployment.
     with app.app_context():
         db.create_all()
-    """
         
     return app
 
 
 if __name__ == "__main__":
     app = create_app()
-    app.run(host="127.0.0.1", port=5000, debug=True)
+
+    app.run(
+        host=os.getenv("HOST", "127.0.0.1"),
+        port=int(os.getenv("PORT", "5000")),
+        debug=os.getenv("FLASK_DEBUG", "false").lower() == "true",
+    )
