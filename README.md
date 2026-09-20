@@ -47,6 +47,8 @@ The following features are planned for later phases and should not currently be 
 
 MediSec is a security-focused prototype and is not a substitute for a certified HIPAA-compliant healthcare production system.
 
+---
+
 ## Quickstart & Installation
 
 1. **Clone and Setup Virtual Environment:**
