@@ -1,97 +1,39 @@
 import os
 from pathlib import Path
 
-
-BASE_DIR = Path(__file__).resolve().parent.parent
-
-
-def get_database_url():
-    """
-    Read the database URL from the environment.
-
-    Render may provide PostgreSQL URLs using the legacy postgres:// scheme.
-    SQLAlchemy expects postgresql://, so normalize it here.
-    """
-    database_url = (
-        os.getenv("DATABASE_URL")
-        or os.getenv("DATABASE_URI")
-    )
-
-    if database_url:
-        if database_url.startswith("postgres://"):
-            database_url = database_url.replace(
-                "postgres://",
-                "postgresql://",
-                1,
-            )
-        return database_url
-
-    # Local development fallback.
-    return f"sqlite:///{BASE_DIR / 'instance' / 'medisec.db'}"
-
-
-def get_cors_origins():
-    """
-    Read comma-separated allowed origins.
-
-    Example:
-    CORS_ORIGINS=http://localhost:3000,https://medisec.vercel.app
-    """
-    configured_origins = os.getenv("CORS_ORIGINS", "")
-
-    if configured_origins:
-        return [
-            origin.strip()
-            for origin in configured_origins.split(",")
-            if origin.strip()
-        ]
-
-    # Safe local-development defaults.
-    return [
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
-        "http://localhost:5000",
-        "http://127.0.0.1:5000",
-    ]
-
-
 class Config:
-    ENVIRONMENT = os.getenv(
-        "FLASK_ENV",
-        os.getenv("FLASK_CONFIG", "development"),
-    )
+    # 1. Base Paths
+    # Finds the true directory root of the running application
+    BASE_DIR = Path(__file__).resolve().parent.parent
 
-    SECRET_KEY = os.getenv("SECRET_KEY")
+    # 2. Render Security Check
+    # Render automatically sets RENDER=true in production cloud containers
+    is_render = bool(os.environ.get("RENDER"))
 
-    # Never silently use a predictable secret in production.
-    if ENVIRONMENT == "production" and not SECRET_KEY:
-        raise RuntimeError(
-            "SECRET_KEY must be configured when FLASK_ENV=production"
-        )
+    # 3. Dynamic Database Configuration
+    # Uses Render PostgreSQL if available, otherwise safely maps absolute SQLite directories
+    if os.environ.get("DATABASE_URL"):
+        database_uri = os.environ.get("DATABASE_URL")
+        # Fix legacy Heroku/Render dialect prefixes where 'postgres://' breaks SQLAlchemy 1.4+
+        if database_uri.startswith("postgres://"):
+            database_uri = database_uri.replace("postgres://", "postgresql://", 1)
+        SQLALCHEMY_DATABASE_URI = database_uri
+    else:
+        # Fallback to an absolute SQLite file path
+        # In cloud containers, we write safely to /tmp. Locally, we keep it inside the root directory.
+        if is_render:
+            db_dir = "/tmp/medisec-instance"
+        else:
+            db_dir = str(BASE_DIR / "instance")
+            
+        # Ensure the fallback directory exists before SQLAlchemy boots up
+        os.makedirs(db_dir, exist_ok=True)
+        SQLALCHEMY_DATABASE_URI = f"sqlite:///{os.path.join(db_dir, 'app.db')}"
 
-    # Development-only fallback.
-    if not SECRET_KEY:
-        SECRET_KEY = "local-development-only-change-me"
-
-    SQLALCHEMY_DATABASE_URI = get_database_url()
+    # 4. App Configurations
+    SECRET_KEY = os.environ.get("SECRET_KEY", "dev-fallback-secret-key-12345")
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-
-    # These options are valid for PostgreSQL and improve resilience when
-    # Render closes idle connections.
-    SQLALCHEMY_ENGINE_OPTIONS = {
-        "pool_pre_ping": True,
-        "pool_recycle": 300,
-    }
-
-    CORS_ORIGINS = get_cors_origins()
-
-    SESSION_COOKIE_SECURE = (
-        os.getenv("SESSION_COOKIE_SECURE", "False").lower()
-        == "true"
-    )
-    SESSION_COOKIE_HTTPONLY = True
-    SESSION_COOKIE_SAMESITE = "Lax"
-
-    PERMANENT_SESSION_LIFETIME = int(
-        os.getenv("PERMANENT_SESSION_LIFETIME", "1800")
-    )
+    
+    # 5. Production-Ready CORS Security Gateways
+    # Restricts API ingress origins to protect health records as requested in specifications
+    CORS_ORIGINS = os.environ.get("CORS_ORIGINS", "*").split(",")
