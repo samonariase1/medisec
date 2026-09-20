@@ -20,6 +20,33 @@ MediSec is a high-performance, cryptographically verifiable medical records mana
 
 ---
 
+## Current Phase 1 Scope
+
+The current deployment focuses on production readiness for the MediSec prototype:
+
+- Render-compatible Flask deployment
+- Gunicorn application serving
+- Managed PostgreSQL configuration
+- Local SQLite development support
+- Environment-variable configuration
+- Restricted CORS configuration
+- Database-aware health checks
+- Initial database table creation
+- Secure production session settings
+
+The following features are planned for later phases and should not currently be described as fully implemented:
+
+- Complete SHA-256 payload-based hash chaining in Seal
+- Automated hash-chain verification
+- O(1) Redis-backed Sentinel velocity tracking
+- Automated risk response policies
+- JWT or OAuth2 browser-extension authentication
+- Offline IndexedDB or SQLite synchronization
+- Full Flask-Migrate production migration history
+- Complete HIPAA compliance certification
+
+MediSec is a security-focused prototype and is not a substitute for a certified HIPAA-compliant healthcare production system.
+
 ## Quickstart & Installation
 
 1. **Clone and Setup Virtual Environment:**
