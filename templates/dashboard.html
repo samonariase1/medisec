@@ -251,9 +251,14 @@
 
   <!-- Sidebar -->
   <aside>
-    <div class="brand">
-      MediSec <span>SOC</span>
+    <div class="sidebar-brand" style="padding: 20px; border-bottom: 1px solid rgba(255,255,255,0.05);">
+    <h2 style="margin-bottom: 10px;">MediSec SOC</h2>
+    <!-- Sleek Back Link Shortcut to Landing Page -->
+    <a href="/" style="display: inline-flex; align-items: center; color: #38bdf8; text-decoration: none; font-size: 13px; font-weight: 500; gap: 6px; opacity: 0.85; transition: opacity 0.2s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.85'">
+        <span>←</span> Return to Home
+    </a>
     </div>
+
     <ul class="nav-list">
       <li class="nav-item active" id="nav-telemetry"><button onclick="switchTab('telemetry')">Live Telemetry</button></li>
       <li class="nav-item" id="nav-audit"><button onclick="switchTab('audit')">Audit Logs</button></li>
