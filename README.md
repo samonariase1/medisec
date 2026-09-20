@@ -11,7 +11,7 @@ MediSec is a high-performance, cryptographically verifiable medical records mana
    - Enforces role-based permissions, record sensitivity clearance, and active patient-clinician assignment windows.
 
 2. **Sentinel (Behavioural Threat Detection Engine)**
-   - Tracks operational velocity and privilege escalations in $O(1)$ time.
+   - Tracks operational velocity and privilege escalations in O(1) time.
    - Automatically flags suspicious behavior, logs security incidents, and dynamically escalates risk metrics.
 
 3. **Seal (Cryptographic Record Provenance Engine)**
@@ -24,35 +24,57 @@ MediSec is a high-performance, cryptographically verifiable medical records mana
 
 The current deployment focuses on production readiness for the MediSec prototype:
 
-- Render-compatible Flask deployment
-- Gunicorn application serving
-- Managed PostgreSQL configuration
-- Local SQLite development support
-- Environment-variable configuration
-- Restricted CORS configuration
-- Database-aware health checks
-- Initial database table creation
-- Secure production session settings
-
-The following features are planned for later phases and should not currently be described as fully implemented:
-
-- Complete SHA-256 payload-based hash chaining in Seal
-- Automated hash-chain verification
-- O(1) Redis-backed Sentinel velocity tracking
-- Automated risk response policies
-- JWT or OAuth2 browser-extension authentication
-- Offline IndexedDB or SQLite synchronization
-- Full Flask-Migrate production migration history
-- Complete HIPAA compliance certification
-
-MediSec is a security-focused prototype and is not a substitute for a certified HIPAA-compliant healthcare production system.
+- **Production Cloud Deployment:** Stable web application hosting running live on Render.
+- **Reliable Data Persistence:** Backed by a managed **Render PostgreSQL** production database cluster.
+- **Ecosystem Environment Synchronization:** Built-in platform checks that automatically bridge `/tmp` allocations for staging and isolated absolute pathing locally.
+- **RESTful Gateway Protection:** Restricts cross-origin requests to explicitly validated extension origins via secure CORS policies.
+- **Robust Infrastructure Monitoring:** Core database-aware `/health` status validation pings that monitor runtime dependencies.
+- **Session Lifecycle Controls:** Rigid 30-minute idle expiration windows to reinforce data protection boundaries.
 
 ---
 
-## Quickstart & Installation
+## Future Roadmap (Phases 2–4)
 
-1. **Clone and Setup Virtual Environment:**
-   ```cmd
-   python -m venv venv
-   venv\Scripts\activate
-   pip install -r requirements.txt
+The following advanced security and architecture features are slated for upcoming integration milestones:
+
+- Complete SHA-256 record payload-inclusive block chaining inside the Seal engine.
+- Automated validation workers that continuously parse history graphs to flag broken cryptographic links.
+- Caching layers (Redis) to move Sentinel tracking into pure inline, constant-time sliding windows.
+- Automated risk-handling libraries (`risk_handler.py`) to execute dynamic rate-limiting alerts during threshold breaches.
+- OAuth2 / JWT Bearer token authentication handshakes between the background browser client and Flask API.
+- Bidirectional offline queues utilizing browser IndexedDB storage for low-connectivity clinical settings.
+- Formalized HIPAA structural governance certification and complete data-at-rest cryptographic wrappers.
+
+*Disclaimer: MediSec is currently a security-focused prototype designed for proof-of-concept evaluation and is not a substitute for an enterprise-certified medical records platform.*
+
+---
+
+## Quickstart & Local Installation
+
+### 1. Clone the Repository & Initialize Environment
+```bash
+# Clone your repository
+git clone <your-repository-url>
+cd medisec
+
+# On Windows:
+python -m venv venv
+venv\Scripts\activate
+
+# On macOS / Linux:
+python3 -m venv venv
+source venv/bin/activate
+```
+
+### 2. Install Project Dependencies
+```bash
+pip install --upgrade pip
+pip install -r requirements.txt
+```
+
+### 3. Run the Development Server Locally
+```bash
+# Flask will auto-create a local 'instance/app.db' SQLite file automatically
+python backend/app.py
+```
+The local server will boot up at `http://127.0.0`. You can test your system status locally or via your production URL at `https://onrender.com`.
