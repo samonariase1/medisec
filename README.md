@@ -78,3 +78,38 @@ pip install -r requirements.txt
 python backend/app.py
 ```
 The local server will boot up at `http://127.0.0`. You can test your system status locally or via your production URL at `https://onrender.com`.
+
+---
+
+# Browser Extension Setup
+
+MediSec is a secure browser extension designed to protect and enhance your web browsing experience.
+
+## 🚀 How to Install (Developer Mode)
+
+Since this extension is loaded locally, follow these steps to install it in your browser:
+
+### For Google Chrome / Microsoft Edge / Brave:
+1. **Download the code:** Click the green **Code** button at the top right of this repository page and select **Download ZIP**. 
+2. **Extract the ZIP:** Extract the downloaded file somewhere permanent on your computer.
+3. **Open Extensions Page:** Open your browser and navigate to:
+   * Chrome: `chrome://extensions`
+   * Edge: `edge://extensions`
+4. **Enable Developer Mode:** Toggle the **Developer mode** switch in the top-right corner of the page.
+5. **Load the Extension:** Click the **Load unpacked** button in the top-left corner.
+6. **Select Folder:** Select the folder containing your extracted files (the folder where `manifest.json` is located).
+
+---
+
+## ⌨️ Keyboard Shortcuts
+
+To make navigating MediSec faster, you can initialize actions using shortcuts:
+* **Open Extension Popup:** Click the extension icon in your toolbar.
+* **Customize Shortcuts:** Go to `chrome://extensions/shortcuts` in your browser to bind custom keys for MediSec actions.
+
+## 📁 File Structure
+
+* `manifest.json` - Configuration and permissions for the extension.
+* `background.js` - Handles background tasks and persistent processes.
+* `content.js` - Interacts directly with web pages.
+* `popup.html` & `popup.js` - The user interface and logic when you click the extension icon.
