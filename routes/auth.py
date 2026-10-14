@@ -1,9 +1,9 @@
 from flask import Blueprint, request, jsonify, session
-from backend.core.auth import verify_password, is_rate_limited
-from backend.core.database import db
+from core.auth import verify_password, is_rate_limited
+from core.database import db
 from models.user import User
 from models.event import Event
-from backend.core.events import dispatch_security_event
+from core.events import dispatch_security_event
 import uuid
 from datetime import datetime, timezone
 

@@ -1,10 +1,10 @@
 from flask import Blueprint, request, jsonify
-from backend.core.auth import login_required
-from backend.core.database import db
+from core.auth import login_required
+from core.database import db
 from models.patient import Patient
 from models.assignment import Assignment
 from models.event import Event
-from backend.core.events import dispatch_security_event
+from core.events import dispatch_security_event
 import uuid
 from datetime import datetime, timedelta, timezone
 

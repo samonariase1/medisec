@@ -1,4 +1,4 @@
-from backend.core.database import db
+from core.database import db
 from models.event import Event
 from seal.hashing import canonicalize_event, generate_hash
 

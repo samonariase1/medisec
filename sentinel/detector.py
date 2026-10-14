@@ -1,4 +1,4 @@
-from backend.core.database import db
+from core.database import db
 from models.incident import Incident
 from sentinel.risk import RISK_WEIGHTS, classify_severity
 from datetime import datetime, timezone

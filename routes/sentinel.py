@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify
-from backend.core.auth import login_required
+from core.auth import login_required
 from models.incident import Incident
 
 sentinel_bp = Blueprint("sentinel", __name__)
