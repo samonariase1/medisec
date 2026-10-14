@@ -1,6 +1,8 @@
 import sys
 import os
 from pathlib import Path
+import numpy as np
+from sklearn.ensemble import IsolationForest
 
 # This safely adds the parent project root folder to Python's path so it finds 'config' and 'models'
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -12,7 +14,7 @@ from config.config import Config
 from backend.core.database import db
 from backend.core.errors import register_error_handlers
 import models                                         # Found in root folder
-from datetime import time, timedelta
+from datetime import timedelta
 import time as t_module
 
 def create_app(config_class=Config):
@@ -88,6 +90,14 @@ def create_app(config_class=Config):
     LIVE_THREATS_STORE = []
     LIVE_AUDIT_LOGS_STORE = []
     
+    # --- 🤖 Offline Machine Learning Engine (Isolation Forest) ---
+    # Pre-train with baseline normal operational features: [payload_size_bytes, request_velocity_flag, error_code_hint]
+    baseline_X = np.array([
+        [45, 0, 0], [60, 0, 0], [50, 0, 0], [120, 1, 0], [55, 0, 0], [80, 0, 0]
+    ])
+    ml_anomaly_detector = IsolationForest(contamination=0.15, random_state=42)
+    ml_anomaly_detector.fit(baseline_X)
+    
     # --- Extension API & SOC Routes ---
     @app.route('/api/v1/verify-session', methods=['POST'])
     def verify_extension_session():
@@ -110,7 +120,7 @@ def create_app(config_class=Config):
             "active_sessions": max(12, total_logs + 5),
             "verified_handshakes": verified_count,
             "flagged_anomalies": flagged_count,
-            "system_status": "Operational"
+            "system_status": "Operational (Offline ML Guardrails Active)"
         })
 
     @app.route('/api/v1/soc/audit-logs', methods=['GET'])
@@ -133,7 +143,7 @@ def create_app(config_class=Config):
 
     LIVE_POLICIES_STORE = [
         {"name": "Zero-Trust EMR Cryptographic Verification", "threshold": "Mandatory Token Handshake", "enforcement": "Active"},
-        {"name": "High-Velocity Rate Limiting Guardrail", "threshold": "Dynamic Concurrency Cap", "enforcement": "Active"},
+        {"name": "Offline Unsupervised ML Anomaly Guardrail", "threshold": "Isolation Forest Outlier Detection", "enforcement": "Active"},
         {"name": "Immutable Audit Log Retention", "threshold": "SHA-256 Chained Ledger", "enforcement": "Active"}
     ]
 
@@ -147,27 +157,44 @@ def create_app(config_class=Config):
     
     @app.route('/api/v1/soc/ingest-telemetry', methods=['POST'])
     def ingest_telemetry():
-        data = request.get_json() or {}
+        raw_data = request.data or b""
+        data = request.get_json(silent=True) or {}
+        
+        # Extract features for our local ML model (payload size, high-velocity flag, anomaly markers)
+        payload_size = len(raw_data)
+        velocity_flag = 1 if payload_size > 500 or data.get("badge") == "danger" else 0
+        error_hint = 1 if data.get("status") in ["FAILED", "CRITICAL"] else 0
+        
+        # Run offline ML prediction (-1 means anomaly, 1 means normal)
+        ml_prediction = ml_anomaly_detector.predict([[payload_size, velocity_flag, error_hint]])[0]
+        is_ml_anomaly = (ml_prediction == -1)
+        
+        badge_val = data.get("badge", "success")
+        if is_ml_anomaly and badge_val == "success":
+            badge_val = "warning"
+            
         log_entry = {
             "timestamp": t_module.strftime("%Y-%m-%d %H:%M:%S"),
             "endpoint": data.get("endpoint", "UNKNOWN_NODE"),
             "action": data.get("action", "EMR_ACCESS"),
             "status": data.get("status", "SUCCESS"),
-            "badge": data.get("badge", "success"),
-            "hash": data.get("hash", "0x00000000")
+            "badge": badge_val,
+            "hash": data.get("hash", "0x00000000"),
+            "ml_flagged": is_ml_anomaly
         }
         LIVE_AUDIT_LOGS_STORE.insert(0, log_entry)
         
-        if data.get("badge") == "danger":
+        if badge_val == "danger" or is_ml_anomaly:
             LIVE_THREATS_STORE.insert(0, {
-                "id": f"THR-{int(t_module.time()) % 10000}",
-                "source": data.get("endpoint"),
-                "threat_type": data.get("action"),
-                "severity": "Critical",
+                "id": f"ML-THR-{int(t_module.time()) % 10000}",
+                "source": data.get("endpoint", "UNKNOWN_NODE"),
+                "threat_type": "Behavioral Outlier / Fuzzing Attempt" if is_ml_anomaly else data.get("action"),
+                "severity": "Critical" if badge_val == "danger" else "Moderate",
                 "span_minutes": 15,
-                "status": "Contained"
+                "status": "Contained by ML Guardrail"
             })
-        return {"status": "recorded", "received": data}, 200
+            
+        return {"status": "recorded", "ml_analysis": "anomaly_detected" if is_ml_anomaly else "normal", "received": data}, 200
 
     # Auto-initialize the schema for runtime execution on prototype launches
     with app.app_context():
