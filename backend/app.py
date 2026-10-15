@@ -169,6 +169,8 @@ def create_app(config_class=Config):
             })
         return {"status": "recorded", "received": data}, 200
 
+    return app
+
     # --- Existing code ends with database setup ---
 # Auto-initialize the schema for runtime execution on prototype launches
 # Create the Flask application instance
