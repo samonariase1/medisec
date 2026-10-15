@@ -169,15 +169,15 @@ def create_app(config_class=Config):
             })
         return {"status": "recorded", "received": data}, 200
 
-    # Auto-initialize the schema for runtime execution on prototype launches
-    with app.app_context():
-        db.create_all()
-        
-    return app
+    # --- Existing code ends with database setup ---
+# Auto-initialize the schema for runtime execution on prototype launches
+with app.app_context():
+    db.create_all()
 
+# 🔥 ADD THIS TOP-LEVEL INSTANCE FOR VERCEL & RENDER RUNTIMES
+app = create_app()
 
 if __name__ == "__main__":
-    app = create_app()
     app.run(
         host=os.getenv("HOST", "127.0.0.1"),
         port=int(os.getenv("PORT", "5000")),
