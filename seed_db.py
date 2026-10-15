@@ -2,7 +2,7 @@ import random
 from faker import Faker
 from argon2 import PasswordHasher
 from app import create_app
-from core.database import db
+from backend.core.database import db
 from models.user import User
 from models.patient import Patient
 
