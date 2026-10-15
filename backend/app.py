@@ -171,11 +171,12 @@ def create_app(config_class=Config):
 
     # --- Existing code ends with database setup ---
 # Auto-initialize the schema for runtime execution on prototype launches
+# 1. First, instantiate the global application
+app = create_app()
+
+# 2. Then, run the context block to create tables
 with app.app_context():
     db.create_all()
-
-# 🔥 ADD THIS TOP-LEVEL INSTANCE FOR VERCEL & RENDER RUNTIMES
-app = create_app()
 
 if __name__ == "__main__":
     app.run(
