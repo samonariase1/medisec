@@ -1,4 +1,4 @@
-from core.database import db
+from backend.core.database import db
 from sentinel.detector import analyze_event
 from seal.chain import seal_event
 
