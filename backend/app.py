@@ -171,10 +171,11 @@ def create_app(config_class=Config):
 
     # --- Existing code ends with database setup ---
 # Auto-initialize the schema for runtime execution on prototype launches
-# 1. First, instantiate the global application
+# Create the Flask application instance
 app = create_app()
 
-# 2. Then, run the context block to create tables
+# Bind database table creation safely inside an application context
+# This prevents it from blocking the WSGI worker spawn process
 with app.app_context():
     db.create_all()
 
