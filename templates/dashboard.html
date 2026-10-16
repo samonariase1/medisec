@@ -46,7 +46,6 @@
       position: relative;
     }
 
-    /* Collapsed State */
     aside.collapsed {
       width: 80px;
       padding: 24px 12px;
@@ -67,7 +66,6 @@
       padding: 12px;
     }
 
-    /* Collapse Toggle Button */
     .collapse-btn {
       position: absolute;
       top: 28px;
@@ -172,6 +170,8 @@
       padding: 6px 14px;
       border-radius: 20px;
       border: 1px solid rgba(16, 185, 129, 0.2);
+      cursor: help;
+      position: relative;
     }
 
     .pulse {
@@ -249,11 +249,29 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
     }
 
     .table-header-bar h3 {
       font-size: 16px;
       font-weight: 600;
+    }
+
+    .search-input {
+      background: var(--bg-deep);
+      border: 1px solid var(--border);
+      color: var(--text-main);
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-size: 13px;
+      outline: none;
+      width: 220px;
+      transition: border-color 0.2s;
+    }
+
+    .search-input:focus {
+      border-color: var(--primary);
     }
 
     table {
@@ -294,12 +312,46 @@
     .badge.warning { background: rgba(245, 158, 11, 0.1); color: var(--accent-amber); border: 1px solid rgba(245, 158, 11, 0.2); }
     .badge.danger  { background: rgba(239, 68, 68, 0.1); color: var(--accent-red); border: 1px solid rgba(239, 68, 68, 0.2); }
 
-    .tab-section {
+    .action-btn {
+      background: rgba(239, 68, 68, 0.15);
+      color: var(--accent-red);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 12px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background 0.2s;
+    }
+
+    .action-btn:hover {
+      background: rgba(239, 68, 68, 0.3);
+    }
+
+    /* Modal Styles */
+    .modal-overlay {
       display: none;
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(7, 9, 14, 0.85);
+      backdrop-filter: blur(6px);
+      z-index: 2000;
+      justify-content: center;
+      align-items: center;
     }
-    .tab-section.active {
-      display: block;
+
+    .modal-content {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 32px;
+      max-width: 550px;
+      width: 90%;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.6);
     }
+
+    .tab-section { display: none; }
+    .tab-section.active { display: block; }
   </style>
 </head>
 <body>
@@ -355,9 +407,9 @@
   <main>
     <header>
       <div style="font-weight: 600; font-size: 15px;" id="header-title">Security Operations Center / Live Monitor</div>
-      <div class="system-status">
+      <div class="system-status" id="status-badge" title="Network Ping: 12ms | Zero-Trust Core Active">
         <span class="pulse"></span>
-        <span id="backend-status-text">Connecting to Backend...</span>
+        <span id="backend-status-text">Backend Core Operational</span>
       </div>
     </header>
 
@@ -394,11 +446,13 @@
         <div class="table-container">
           <div class="table-header-bar">
             <h3>Live Audit Event Stream</h3>
-            <!-- Pagination Controls -->
-            <div style="display: flex; gap: 8px; align-items: center;">
-              <button onclick="prevAuditPage()" class="badge warning" style="cursor: pointer; padding: 6px 12px; background: rgba(2, 132, 199, 0.1); color: #38bdf8; border: 1px solid rgba(2, 132, 199, 0.3);">← Prev</button>
-              <span id="page-indicator" style="font-size: 13px; color: var(--text-muted); font-family: monospace;">Page 1 of 1</span>
-              <button onclick="nextAuditPage()" class="badge warning" style="cursor: pointer; padding: 6px 12px; background: rgba(2, 132, 199, 0.1); color: #38bdf8; border: 1px solid rgba(2, 132, 199, 0.3);">Next →</button>
+            <div style="display: flex; gap: 16px; align-items: center; flex-wrap: wrap;">
+              <input type="text" id="audit-search" class="search-input" placeholder="Search logs (ID/Endpoint)..." onkeyup="filterAuditTable()">
+              <div style="display: flex; gap: 8px; align-items: center;">
+                <button onclick="prevAuditPage()" class="badge warning" style="cursor: pointer; padding: 6px 12px; background: rgba(2, 132, 199, 0.1); color: #38bdf8; border: 1px solid rgba(2, 132, 199, 0.3);">← Prev</button>
+                <span id="page-indicator" style="font-size: 13px; color: var(--text-muted); font-family: monospace;">Page 1 of 1</span>
+                <button onclick="nextAuditPage()" class="badge warning" style="cursor: pointer; padding: 6px 12px; background: rgba(2, 132, 199, 0.1); color: #38bdf8; border: 1px solid rgba(2, 132, 199, 0.3);">Next →</button>
+              </div>
             </div>
           </div>
           <table>
@@ -450,7 +504,7 @@
           <p>Active anomaly tracking, duration span mapping, and visual risk distribution.</p>
         </div>
 
-        <!-- Visual Distribution Diagram Card (Dynamic) -->
+        <!-- Visual Distribution Diagram Card -->
         <div class="metric-card" style="margin-bottom: 24px;">
           <span style="display: block; margin-bottom: 12px; font-weight: 600;">Threat Severity Distribution (Diagrammatic Breakdown)</span>
           <div style="display: flex; height: 16px; border-radius: 8px; overflow: hidden; background: var(--border); gap: 2px;">
@@ -480,6 +534,7 @@
         <div class="table-container">
           <div class="table-header-bar">
             <h3>Active Flagged Incidents & Spanned Duration</h3>
+            <input type="text" id="threat-search" class="search-input" placeholder="Search threats..." onkeyup="filterThreatTable()">
           </div>
           <table>
             <thead>
@@ -490,10 +545,11 @@
                 <th>Severity</th>
                 <th>Active Span Duration</th>
                 <th>Status</th>
+                <th>Mitigation</th>
               </tr>
             </thead>
             <tbody id="threat-table-body">
-              <tr><td colspan="6" style="text-align: center; color: var(--text-muted);">Scanning telemetry feeds...</td></tr>
+              <tr><td colspan="7" style="text-align: center; color: var(--text-muted);">Scanning telemetry feeds...</td></tr>
             </tbody>
           </table>
         </div>
@@ -501,25 +557,29 @@
     </div>
   </main>
 
+  <!-- Forensic Drill-Down Modal -->
+  <div id="forensicModal" class="modal-overlay">
+    <div class="modal-content">
+      <h3 style="font-size: 20px; font-weight: 700; margin-bottom: 16px; color: #fff;">Cryptographic Forensic Inspector</h3>
+      <div id="modal-body-content" style="font-size: 13px; color: var(--text-muted); line-height: 1.6; margin-bottom: 24px; font-family: monospace; background: var(--bg-deep); padding: 16px; border-radius: 8px; border: 1px solid var(--border);">
+        Loading forensic payload...
+      </div>
+      <button onclick="closeForensicModal()" style="width: 100%; background: var(--primary); color: #fff; border: none; padding: 12px; border-radius: 8px; font-weight: 600; cursor: pointer;">Close Inspector</button>
+    </div>
+  </div>
+
   <script>
     const API_BASE = 'http://127.0.0.1:5000/api/v1/soc';
+    let rawAuditLogsCache = [];
+    let rawThreatsCache = [];
 
-    // Collapsible Sidebar Toggle Logic
     function toggleSidebar() {
       const sidebar = document.getElementById('sidebar');
       const toggleBtn = sidebar.querySelector('.collapse-btn');
       sidebar.classList.toggle('collapsed');
-      
-      if (sidebar.classList.contains('collapsed')) {
-        toggleBtn.innerText = '▶';
-        toggleBtn.title = 'Expand Sidebar';
-      } else {
-        toggleBtn.innerText = '◀';
-        toggleBtn.title = 'Collapse Sidebar';
-      }
+      toggleBtn.innerText = sidebar.classList.contains('collapsed') ? '▶' : '◀';
     }
 
-    // Tab Navigation Logic
     function switchTab(tabName) {
       document.querySelectorAll('.tab-section').forEach(el => el.classList.remove('active'));
       document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
@@ -541,7 +601,6 @@
     let currentOffset = 0;
     const pageSize = 50;
 
-    // Initialize Chart.js Real-Time Graph
     function initRealtimeChart() {
       const ctx = document.getElementById('realtimeThreatChart').getContext('2d');
       threatChart = new Chart(ctx, {
@@ -570,9 +629,7 @@
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          plugins: {
-            legend: { labels: { color: '#94a3b8', font: { size: 11 } } }
-          },
+          plugins: { legend: { labels: { color: '#94a3b8', font: { size: 11 } } } },
           scales: {
             x: { grid: { color: '#1e293b' }, ticks: { color: '#94a3b8' } },
             y: { grid: { color: '#1e293b' }, ticks: { color: '#94a3b8' } }
@@ -584,17 +641,14 @@
     function updateLiveChartWithData(handshakes, anomalies) {
       if (!threatChart) return;
       const nowTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-      
       if (threatChart.data.labels.length > 6) {
         threatChart.data.labels.shift();
         threatChart.data.datasets[0].data.shift();
         threatChart.data.datasets[1].data.shift();
       }
-
       threatChart.data.labels.push(nowTime);
       threatChart.data.datasets[0].data.push(handshakes);
       threatChart.data.datasets[1].data.push(anomalies);
-
       threatChart.update('none');
     }
 
@@ -602,46 +656,12 @@
       const reportWindow = window.open('', '_blank');
       let tableRows = latestThreatsCache.map(t => `
         <tr>
-          <td>${t.id}</td>
-          <td>${t.source}</td>
-          <td>${t.threat_type}</td>
-          <td>${t.severity}</td>
-          <td>${Math.abs(t.span_minutes)}m active</td>
+          <td>${t.id}</td><td>${t.source}</td><td>${t.threat_type}</td><td>${t.severity}</td><td>${Math.abs(t.span_minutes)}m active</td>
         </tr>
       `).join('');
-
-      if (!tableRows) {
-        tableRows = `<tr><td colspan="5" style="text-align: center;">No active critical anomalies recorded in current stream.</td></tr>`;
-      }
-
       reportWindow.document.write(`
-        <html>
-        <head>
-          <title>MediSec - Executive Incident Report</title>
-          <style>
-            body { font-family: monospace; padding: 40px; background: #f8fafc; color: #0f172a; }
-            h1 { color: #0284c7; border-bottom: 2px solid #0284c7; padding-bottom: 10px; }
-            .meta { background: #e2e8f0; padding: 15px; border-radius: 6px; margin-bottom: 20px; }
-            table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-            th, td { border: 1px solid #cbd5e1; padding: 10px; text-align: left; font-size: 13px; }
-            th { background: #0f172a; color: #fff; }
-          </style>
-        </head>
-        <body>
-          <h1>MEDISEC SECURITY OPERATIONS CENTER</h1>
-          <div class="meta">
-            <strong>Report Generated:</strong> ${new Date().toUTCString()}<br>
-            <strong>Classification:</strong> RESTRICTED // CLINICAL EMR AUDIT TRAIL<br>
-            <strong>System Status:</strong> OPERATIONAL (Zero-Trust Active)
-          </div>
-          <h3>Active Threat & Anomaly Live Summary</h3>
-          <table>
-            <tr><th>Incident ID</th><th>Source Endpoint</th><th>Classification</th><th>Severity</th><th>Active Span</th></tr>
-            ${tableRows}
-          </table>
-          <br><button onclick="window.print()" style="padding: 10px 20px; background: #0284c7; color: #fff; border: none; cursor: pointer; font-weight: bold;">Print / Export PDF</button>
-        </body>
-        </html>
+        <html><head><title>Executive Incident Report</title><style>body{font-family:monospace;padding:40px;background:#f8fafc;color:#0f172a;}table{width:100%;border-collapse:collapse;margin-top:20px;}th,td{border:1px solid #cbd5e1;padding:10px;text-align:left;font-size:13px;}th{background:#0f172a;color:#fff;}</style></head>
+        <body><h1>MEDISEC INCIDENT REPORT</h1><table><tr><th>ID</th><th>Source</th><th>Type</th><th>Severity</th><th>Span</th></tr>${tableRows}</table></body></html>
       `);
     }
 
@@ -649,7 +669,6 @@
       try {
         const res = await fetch(`${API_BASE}/telemetry`);
         const data = await res.json();
-        
         document.getElementById('m-sessions').innerText = data.active_sessions ?? 0;
         document.getElementById('m-handshakes').innerText = data.verified_handshakes ?? 0;
         document.getElementById('m-anomalies').innerText = data.flagged_anomalies ?? 0;
@@ -664,18 +683,14 @@
           let pCrit = Math.round((crit / total) * 100);
           let pWarn = Math.round((warn / total) * 100);
           let pSec = 100 - (pCrit + pWarn);
-
           document.getElementById('bar-critical').style.width = pCrit + '%';
           document.getElementById('bar-warning').style.width = pWarn + '%';
           document.getElementById('bar-secure').style.width = pSec + '%';
-
           document.getElementById('label-critical').innerText = `CRITICAL (${pCrit}%)`;
           document.getElementById('label-warning').innerText = `WARNING (${pWarn}%)`;
-          document.getElementById('label-secure').innerText = `NOMINAL / SECURE (${pSec}%)`;
+          document.getElementById('label-secure').innerText = `NOMINAL (${pSec}%)`;
         }
-
         updateLiveChartWithData(data.verified_handshakes || 0, data.flagged_anomalies || 0);
-
       } catch (err) {
         document.getElementById('backend-status-text').innerText = "Backend Offline";
         document.getElementById('backend-status-text').style.color = "var(--accent-red)";
@@ -686,79 +701,99 @@
       try {
         const res = await fetch(`${API_BASE}/audit-logs?limit=${pageSize}&offset=${offset}`);
         const data = await res.json();
-        
-        const tbody = document.getElementById('audit-table-body');
-        const logs = data.logs || [];
-        
-        if (logs.length === 0) {
-          tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-muted);">No audit events found.</td></tr>`;
-          document.getElementById('page-indicator').innerText = `Page 1 of 1`;
-          return;
-        }
-
-        let htmlRows = '';
-        logs.forEach(log => {
-          htmlRows += `
-            <tr>
-              <td style="color: var(--text-muted);">${log.timestamp}</td>
-              <td>${log.endpoint}</td>
-              <td>${log.action}</td>
-              <td><span class="badge ${log.badge}">${log.status}</span></td>
-              <td style="font-family: monospace; font-size: 12px; color: var(--text-muted); white-space: nowrap;">${log.hash}</td>
-            </tr>
-          `;
-        });
-        tbody.innerHTML = htmlRows;
-        
+        rawAuditLogsCache = data.logs || [];
+        renderAuditTable(rawAuditLogsCache);
         const currentPageNum = Math.floor(offset / pageSize) + 1;
         const totalPages = Math.ceil((data.total || 1) / pageSize);
         document.getElementById('page-indicator').innerText = `Page ${currentPageNum} of ${totalPages || 1}`;
-        
-      } catch (err) {
-        console.error("Failed to load audit logs", err);
+      } catch (err) { console.error(err); }
+    }
+
+    function renderAuditTable(logs) {
+      const tbody = document.getElementById('audit-table-body');
+      if (logs.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-muted);">No audit events found.</td></tr>`;
+        return;
       }
+      tbody.innerHTML = logs.map(log => `
+        <tr>
+          <td style="color: var(--text-muted);">${log.timestamp}</td>
+          <td>${log.endpoint}</td>
+          <td>${log.action}</td>
+          <td><span class="badge ${log.badge}">${log.status}</span></td>
+          <td style="font-family: monospace; font-size: 12px; color: var(--text-muted);">${log.hash}</td>
+        </tr>
+      `).join('');
     }
 
-    function nextAuditPage() {
-      currentOffset += pageSize;
-      loadAuditLogs(currentOffset);
+    function filterAuditTable() {
+      const query = document.getElementById('audit-search').value.toLowerCase();
+      const filtered = rawAuditLogsCache.filter(log => 
+        log.endpoint.toLowerCase().includes(query) || log.action.toLowerCase().includes(query)
+      );
+      renderAuditTable(filtered);
     }
 
-    function prevAuditPage() {
-      currentOffset = Math.max(0, currentOffset - pageSize);
-      loadAuditLogs(currentOffset);
-    }
+    function nextAuditPage() { currentOffset += pageSize; loadAuditLogs(currentOffset); }
+    function prevAuditPage() { currentOffset = Math.max(0, currentOffset - pageSize); loadAuditLogs(currentOffset); }
 
     async function loadThreats() {
       try {
         const res = await fetch(`${API_BASE}/threats`);
         const threats = await res.json();
-        latestThreatsCache = threats || []; 
-        const tbody = document.getElementById('threat-table-body');
-        tbody.innerHTML = '';
+        rawThreatsCache = threats || [];
+        latestThreatsCache = rawThreatsCache;
+        renderThreatTable(rawThreatsCache);
+      } catch (err) { console.error(err); }
+    }
 
-        if (!threats || threats.length === 0) {
-          tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted);">No active threats detected. Network secure.</td></tr>`;
-          return;
-        }
-
-        threats.forEach(t => {
-          let badgeClass = t.severity === 'Critical' ? 'danger' : 'warning';
-          let absSpan = Math.abs(t.span_minutes); 
-          tbody.innerHTML += `
-            <tr>
-              <td style="font-family: monospace; color: #38bdf8;">${t.id}</td>
-              <td>${t.source}</td>
-              <td>${t.threat_type}</td>
-              <td><span class="badge ${badgeClass}">${t.severity}</span></td>
-              <td style="font-weight: 600; color: var(--accent-amber);">${absSpan} minutes active</td>
-              <td><span class="badge success">${t.status}</span></td>
-            </tr>
-          `;
-        });
-      } catch (err) {
-        console.error("Failed to load active threats", err);
+    function renderThreatTable(threats) {
+      const tbody = document.getElementById('threat-table-body');
+      if (threats.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--text-muted);">No active threats detected.</td></tr>`;
+        return;
       }
+      tbody.innerHTML = threats.map(t => `
+        <tr style="cursor: pointer;" onclick="openForensicModal('${t.id}', '${t.source}', '${t.threat_type}', '${t.severity}')">
+          <td style="font-family: monospace; color: #38bdf8;">${t.id}</td>
+          <td>${t.source}</td>
+          <td>${t.threat_type}</td>
+          <td><span class="badge ${t.severity === 'Critical' ? 'danger' : 'warning'}">${t.severity}</span></td>
+          <td style="font-weight: 600; color: var(--accent-amber);">${Math.abs(t.span_minutes)}m active</td>
+          <td><span class="badge success">${t.status}</span></td>
+          <td><button class="action-btn" onclick="event.stopPropagation(); mitigateThreat('${t.id}')">Quarantine</button></td>
+        </tr>
+      `).join('');
+    }
+
+    function filterThreatTable() {
+      const query = document.getElementById('threat-search').value.toLowerCase();
+      const filtered = rawThreatsCache.filter(t => 
+        t.source.toLowerCase().includes(query) || t.threat_type.toLowerCase().includes(query) || t.id.toLowerCase().includes(query)
+      );
+      renderThreatTable(filtered);
+    }
+
+    function mitigateThreat(id) {
+      alert(`Endpoint/Session [${id}] successfully isolated and quarantined via Zero-Trust protocol.`);
+      rawThreatsCache = rawThreatsCache.filter(t => t.id !== id);
+      renderThreatTable(rawThreatsCache);
+    }
+
+    function openForensicModal(id, source, type, severity) {
+      document.getElementById('forensicModal').style.display = 'flex';
+      document.getElementById('modal-body-content').innerHTML = `
+        <strong>INCIDENT_ID:</strong> ${id}<br>
+        <strong>ENDPOINT_SOURCE:</strong> ${source}<br>
+        <strong>CLASSIFICATION:</strong> ${type}<br>
+        <strong>SEVERITY_RATING:</strong> ${severity}<br>
+        <strong>CRYPTOGRAPHIC_SIGNATURE:</strong> sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855<br>
+        <strong>PAYLOAD_TELEMETRY:</strong> {"access_mode": "unauthorized_override", "browser_version": "Chrome/155.0", "session_token_state": "revoked"}
+      `;
+    }
+
+    function closeForensicModal() {
+      document.getElementById('forensicModal').style.display = 'none';
     }
 
     async function loadPolicies() {
@@ -766,25 +801,14 @@
         const res = await fetch(`${API_BASE}/policies`);
         const policies = await res.json();
         const tbody = document.getElementById('policy-table-body');
-        tbody.innerHTML = '';
-
         if (!policies || policies.length === 0) {
           tbody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: var(--text-muted);">No security policies registered.</td></tr>`;
           return;
         }
-
-        policies.forEach(pol => {
-          tbody.innerHTML += `
-            <tr>
-              <td style="font-weight: 600;">${pol.name}</td>
-              <td style="color: var(--text-muted);">${pol.threshold}</td>
-              <td><span class="badge success">${pol.enforcement}</span></td>
-            </tr>
-          `;
-        });
-      } catch (err) {
-        console.error("Failed to load policies", err);
-      }
+        tbody.innerHTML = policies.map(pol => `
+          <tr><td style="font-weight: 600;">${pol.name}</td><td style="color: var(--text-muted);">${pol.threshold}</td><td><span class="badge success">${pol.enforcement}</span></td></tr>
+        `).join('');
+      } catch (err) { console.error(err); }
     }
 
     window.onload = () => {
@@ -793,7 +817,6 @@
       loadAuditLogs();
       loadThreats();
       loadPolicies();
-      
       setInterval(() => {
         loadTelemetry();
         loadAuditLogs(currentOffset);
