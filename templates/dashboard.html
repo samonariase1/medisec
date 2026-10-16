@@ -42,6 +42,54 @@
       display: flex;
       flex-direction: column;
       padding: 24px;
+      transition: width 0.3s ease, padding 0.3s ease;
+      position: relative;
+    }
+
+    /* Collapsed State */
+    aside.collapsed {
+      width: 80px;
+      padding: 24px 12px;
+    }
+
+    aside.collapsed .brand-text,
+    aside.collapsed .nav-text {
+      display: none;
+    }
+
+    aside.collapsed .brand {
+      justify-content: center;
+      margin-bottom: 30px;
+    }
+
+    aside.collapsed .nav-item button {
+      justify-content: center;
+      padding: 12px;
+    }
+
+    /* Collapse Toggle Button */
+    .collapse-btn {
+      position: absolute;
+      top: 28px;
+      right: -12px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 10px;
+      transition: color 0.2s;
+      z-index: 10;
+    }
+
+    .collapse-btn:hover {
+      color: var(--text-main);
+      border-color: var(--primary);
     }
 
     .brand {
@@ -52,6 +100,8 @@
       display: flex;
       align-items: center;
       gap: 10px;
+      white-space: nowrap;
+      overflow: hidden;
     }
 
     .brand span {
@@ -82,6 +132,11 @@
       border-radius: 8px;
       cursor: pointer;
       transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      white-space: nowrap;
+      overflow: hidden;
     }
 
     .nav-item.active button, .nav-item button:hover {
@@ -249,21 +304,48 @@
 </head>
 <body>
 
- <!-- Sidebar -->
-  <aside>
-    <div class="brand">
-      MediSec <span>SOC</span>
-    </div>
-    <ul class="nav-list">
-      <li class="nav-item active" id="nav-telemetry"><button onclick="switchTab('telemetry')">Live Telemetry</button></li>
-      <li class="nav-item" id="nav-audit"><button onclick="switchTab('audit')">Audit Logs</button></li>
-      <li class="nav-item" id="nav-threats"><button onclick="switchTab('threats')">Threats & Diagrams</button></li>
-      <li class="nav-item" id="nav-policies"><button onclick="switchTab('policies')">Security Policies</button></li>
+  <!-- Sidebar -->
+  <aside id="sidebar">
+    <button class="collapse-btn" onclick="toggleSidebar()" title="Toggle Sidebar">◀</button>
 
-      <!-- Add Return to Homepage Link Here -->
+    <div class="brand">
+      <span style="font-size: 16px;">🛡️</span>
+      <span class="brand-text">MediSec <span>SOC</span></span>
+    </div>
+    
+    <ul class="nav-list">
+      <li class="nav-item active" id="nav-telemetry">
+        <button onclick="switchTab('telemetry')">
+          <span style="font-size: 16px; width: 24px; text-align: center; flex-shrink: 0;">📊</span>
+          <span class="nav-text">Live Telemetry</span>
+        </button>
+      </li>
+      <li class="nav-item" id="nav-audit">
+        <button onclick="switchTab('audit')">
+          <span style="font-size: 16px; width: 24px; text-align: center; flex-shrink: 0;">📜</span>
+          <span class="nav-text">Audit Logs</span>
+        </button>
+      </li>
+      <li class="nav-item" id="nav-threats">
+        <button onclick="switchTab('threats')">
+          <span style="font-size: 16px; width: 24px; text-align: center; flex-shrink: 0;">⚡</span>
+          <span class="nav-text">Threats & Diagrams</span>
+        </button>
+      </li>
+      <li class="nav-item" id="nav-policies">
+        <button onclick="switchTab('policies')">
+          <span style="font-size: 16px; width: 24px; text-align: center; flex-shrink: 0;">🔒</span>
+          <span class="nav-text">Security Policies</span>
+        </button>
+      </li>
+
+      <!-- Return to Homepage Link -->
       <li class="nav-item" style="margin-top: 40px;">
         <a href="/" style="text-decoration: none;">
-          <button style="background: rgba(2, 132, 199, 0.15); color: #38bdf8; border: 1px solid rgba(2, 132, 199, 0.3); width: 100%; text-align: left; padding: 10px 14px; border-radius: 8px; cursor: pointer;">← Return to Home</button>
+          <button style="background: rgba(2, 132, 199, 0.15); color: #38bdf8; border: 1px solid rgba(2, 132, 199, 0.3); width: 100%; text-align: left; padding: 10px 14px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 10px; white-space: nowrap; overflow: hidden;">
+            <span style="font-size: 16px; width: 24px; text-align: center; flex-shrink: 0;">🏠</span>
+            <span class="nav-text">Return to Home</span>
+          </button>
         </a>
       </li>
     </ul>
@@ -422,6 +504,21 @@
   <script>
     const API_BASE = 'http://127.0.0.1:5000/api/v1/soc';
 
+    // Collapsible Sidebar Toggle Logic
+    function toggleSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      const toggleBtn = sidebar.querySelector('.collapse-btn');
+      sidebar.classList.toggle('collapsed');
+      
+      if (sidebar.classList.contains('collapsed')) {
+        toggleBtn.innerText = '▶';
+        toggleBtn.title = 'Expand Sidebar';
+      } else {
+        toggleBtn.innerText = '◀';
+        toggleBtn.title = 'Collapse Sidebar';
+      }
+    }
+
     // Tab Navigation Logic
     function switchTab(tabName) {
       document.querySelectorAll('.tab-section').forEach(el => el.classList.remove('active'));
@@ -440,7 +537,7 @@
     }
     
     let threatChart;
-    let latestThreatsCache = []; // Cache for dynamic executive reporting
+    let latestThreatsCache = []; 
     let currentOffset = 0;
     const pageSize = 50;
 
@@ -484,7 +581,6 @@
       });
     }
 
-    // Dynamic Real-Time Chart Updater driven by real telemetry metrics
     function updateLiveChartWithData(handshakes, anomalies) {
       if (!threatChart) return;
       const nowTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
@@ -502,10 +598,8 @@
       threatChart.update('none');
     }
 
-    // Generate Dynamic Executive Anomaly Report based entirely on live cache
     function generateAnomalyReport() {
       const reportWindow = window.open('', '_blank');
-      
       let tableRows = latestThreatsCache.map(t => `
         <tr>
           <td>${t.id}</td>
@@ -551,7 +645,6 @@
       `);
     }
 
-    // Fetch Live Telemetry Data and Drive Distribution Bar & Chart
     async function loadTelemetry() {
       try {
         const res = await fetch(`${API_BASE}/telemetry`);
@@ -589,7 +682,6 @@
       }
     }
 
-    // Fetch Paginated Audit Logs
     async function loadAuditLogs(offset = 0) {
       try {
         const res = await fetch(`${API_BASE}/audit-logs?limit=${pageSize}&offset=${offset}`);
@@ -627,7 +719,6 @@
       }
     }
 
-    // Pagination controls
     function nextAuditPage() {
       currentOffset += pageSize;
       loadAuditLogs(currentOffset);
@@ -638,7 +729,6 @@
       loadAuditLogs(currentOffset);
     }
 
-    // Fetch Active Threats dynamically
     async function loadThreats() {
       try {
         const res = await fetch(`${API_BASE}/threats`);
@@ -671,7 +761,6 @@
       }
     }
 
-    // Fetch Security Policies dynamically
     async function loadPolicies() {
       try {
         const res = await fetch(`${API_BASE}/policies`);
@@ -698,7 +787,6 @@
       }
     }
 
-    // Unified Window Onload Initializer
     window.onload = () => {
       initRealtimeChart();
       loadTelemetry();
@@ -706,7 +794,6 @@
       loadThreats();
       loadPolicies();
       
-      // Continuous real-time polling every 2 seconds
       setInterval(() => {
         loadTelemetry();
         loadAuditLogs(currentOffset);
