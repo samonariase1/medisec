@@ -352,6 +352,77 @@
 
     .tab-section { display: none; }
     .tab-section.active { display: block; }
+  /* --- Responsive & Mobile Adaptations --- */
+    @media (max-width: 1024px) {
+      aside {
+        width: 220px;
+        padding: 18px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      body {
+        flex-direction: column;
+        height: auto;
+        overflow-y: auto;
+      }
+
+      aside {
+        width: 100% !important;
+        height: auto;
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+        padding: 16px;
+      }
+
+      aside .collapse-btn {
+        display: none;
+      }
+
+      aside .brand {
+        margin-bottom: 20px;
+        justify-content: space-between;
+      }
+
+      .nav-list {
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+
+      .nav-item {
+        flex: 1;
+        min-width: 120px;
+      }
+
+      .nav-item button {
+        justify-content: center;
+        padding: 8px 10px;
+        font-size: 13px;
+      }
+
+      main {
+        height: auto;
+        overflow-y: visible;
+      }
+
+      .dashboard-content {
+        padding: 16px;
+      }
+
+      .metrics-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .table-header-bar {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .search-input {
+        width: 100%;
+      }
+    }
   </style>
 </head>
 <body>
